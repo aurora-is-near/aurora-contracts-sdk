@@ -1,0 +1,2 @@
+aurora-sdk/=lib/aurora-solidity-sdk/src/
+openzeppelin-contracts/=lib/aurora-solidity-sdk/lib/openzeppelin-contracts/contracts/

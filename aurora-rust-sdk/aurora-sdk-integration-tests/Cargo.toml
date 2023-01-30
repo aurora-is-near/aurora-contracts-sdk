@@ -6,11 +6,11 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
-aurora-engine = { git = "https://github.com/aurora-is-near/aurora-engine.git", tag = "2.8.1" }
-aurora-engine-precompiles = { git = "https://github.com/aurora-is-near/aurora-engine.git", tag = "2.8.1" }
-aurora-engine-sdk = { git = "https://github.com/aurora-is-near/aurora-engine.git", tag = "2.8.1" }
-aurora-engine-transactions = { git = "https://github.com/aurora-is-near/aurora-engine.git", tag = "2.8.1" }
-aurora-engine-types = { git = "https://github.com/aurora-is-near/aurora-engine.git", tag = "2.8.1" }
+aurora-engine = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "5416ffc790f6c98421756f9d06993be4a55875bb" }
+aurora-engine-precompiles = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "5416ffc790f6c98421756f9d06993be4a55875bb" }
+aurora-engine-sdk = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "5416ffc790f6c98421756f9d06993be4a55875bb" }
+aurora-engine-transactions = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "5416ffc790f6c98421756f9d06993be4a55875bb" }
+aurora-engine-types = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "5416ffc790f6c98421756f9d06993be4a55875bb" }
 base64 = "0.21"
 borsh = "0.9"
 ethabi = "18"

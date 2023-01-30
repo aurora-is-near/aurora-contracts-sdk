@@ -4,3 +4,9 @@
 [submodule "aurora-solidity-sdk/lib/forge-std"]
 	path = aurora-solidity-sdk/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "examples/social-db-from-aurora/social-db"]
+	path = examples/social-db-from-aurora/social-db
+	url = https://github.com/NearSocial/social-db.git
+[submodule "aurora-solidity-sdk/lib/openzeppelin-contracts"]
+	path = aurora-solidity-sdk/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts.git

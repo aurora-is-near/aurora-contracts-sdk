@@ -6,6 +6,7 @@ use near_sdk::json_types::U64;
 use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault, Promise};
 
 const DEFAULT_FEE: u64 = 500;
+/// Selector for [exactOutputSingle](https://docs.uniswap.org/contracts/v3/reference/periphery/SwapRouter#exactoutputsingle)
 const EXACT_OUTPUT_SINGLE_SELECTOR: [u8; 4] = [219, 62, 33, 152];
 
 #[near_bindgen]
@@ -17,6 +18,8 @@ pub struct UniswapProxy {
 
 #[near_bindgen]
 impl UniswapProxy {
+    /// Function to initialize this contract with the account ID of the Aurora EVM and the
+    /// address for the Uniswap router contract deployed there.
     #[init]
     pub fn new(aurora: AccountId, uniswap_address: String) -> Self {
         Self {
@@ -25,6 +28,8 @@ impl UniswapProxy {
         }
     }
 
+    /// Proxy for [exactOutputSingle](https://docs.uniswap.org/contracts/v3/reference/periphery/SwapRouter#exactoutputsingle).
+    /// Calls the `exact_output_single` function of a Uniswap router contract deployed on Aurora.
     pub fn exact_output_single(&self, params: SerializableExactOutputSingleParams) -> Promise {
         let params: ExactOutputSingleParams = params.try_into().unwrap();
         let evm_token = ethabi::Token::Tuple(vec![
@@ -52,6 +57,7 @@ impl UniswapProxy {
             .then(Self::ext(env::current_account_id()).parse_exact_output_single_result())
     }
 
+    /// Callback used to parse the output from the call to Aurora made in `exact_output_single`.
     #[private]
     pub fn parse_exact_output_single_result(
         &self,
@@ -76,6 +82,8 @@ impl UniswapProxy {
     }
 }
 
+/// Parameters for calling `exactOutputSingle`. See Uniswap documentation:
+/// https://docs.uniswap.org/contracts/v3/reference/periphery/interfaces/ISwapRouter#exactoutputsingleparams
 struct ExactOutputSingleParams {
     pub token_in: Address,
     pub token_out: Address,
@@ -87,6 +95,8 @@ struct ExactOutputSingleParams {
     pub price_limit: U256,
 }
 
+/// The amount of tokens input in order to obtain the requested output in `exactOutputSingle`.
+/// See Uniswap documentation: https://docs.uniswap.org/contracts/v3/reference/periphery/SwapRouter#return-values-2
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct ExactOutputSingleResult {
     amount_in: String,
@@ -130,6 +140,8 @@ impl TryFrom<SerializableExactOutputSingleParams> for ExactOutputSingleParams {
     }
 }
 
+/// Same as `ExactOutputSingleParams` above, but with the types optimized for input/output
+/// as JSON instead of for usage in the EVM.
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct SerializableExactOutputSingleParams {
     pub token_in: String,

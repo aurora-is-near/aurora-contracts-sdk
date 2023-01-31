@@ -24,3 +24,9 @@ Then you should be able to run the tests
 cd aurora-solidity-sdk/
 forge test
 ```
+
+### Navigating the examples with an IDE
+
+The examples in this repository are separate from the main Aurora SDK library and we do not include them in a top-level Cargo workspace.
+This has the unfortunate side-effect that the examples are not parsed when opening an IDE like VS Code in the repository root.
+If you are playing with the example in an IDE we recommend opening the directory for that example directly (for example `examples/uniswap-from-near`).

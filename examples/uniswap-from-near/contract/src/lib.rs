@@ -6,7 +6,9 @@ use near_sdk::json_types::U64;
 use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault, Promise};
 
 const DEFAULT_FEE: u64 = 500;
-/// Selector for [exactOutputSingle](https://docs.uniswap.org/contracts/v3/reference/periphery/SwapRouter#exactoutputsingle)
+/// Selector for [exactOutputSingle](https://docs.uniswap.org/contracts/v3/reference/periphery/SwapRouter#exactoutputsingle).
+/// The value is computing by taking the first 4 bytes of the keccak hash of the type
+/// signature for the function, see https://www.4byte.directory/signatures/?bytes4_signature=0xdb3e2198
 const EXACT_OUTPUT_SINGLE_SELECTOR: [u8; 4] = [219, 62, 33, 152];
 
 #[near_bindgen]

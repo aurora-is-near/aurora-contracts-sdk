@@ -3,6 +3,10 @@ use std::path::Path;
 
 const NO_SUCH_COMMAND: &str = "no such command";
 
+/// Builds a Wasm artifcact for the Rust contract defined in the given directory.
+/// This function uses the [cargo-near](https://github.com/near/cargo-near) too and
+/// installs this extension if it is not already present. `cargo-near` only works with
+/// contracts that use NEAR SDK version 4.1 or later.
 pub async fn build_contract<P: AsRef<Path>>(contract_dir: P) -> anyhow::Result<Vec<u8>> {
     let contract_path = contract_dir.as_ref();
     check_cargo_near(contract_path).await?;

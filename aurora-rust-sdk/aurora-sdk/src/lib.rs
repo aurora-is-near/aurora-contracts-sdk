@@ -19,6 +19,9 @@ pub use near_sdk;
 use near_sdk::{borsh, ext_contract};
 use std::fmt;
 
+/// Indicates an error with signature `Error(String)`. For more information see:
+/// * https://docs.soliditylang.org/en/v0.8.18/control-structures.html#assert-and-require
+/// * https://www.4byte.directory/signatures/?bytes4_signature=0x08c379a0
 pub const SOLIDITY_ERROR_SELECTOR: [u8; 4] = [8, 195, 121, 160];
 
 pub fn parse_address(input: &str) -> Result<Address, AddressError> {

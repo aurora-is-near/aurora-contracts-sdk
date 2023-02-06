@@ -50,8 +50,11 @@ impl FactoryConstructor {
         Self(ContractConstructor::from_extended_json(contract_path))
     }
 
-    pub fn deploy(&self) -> Vec<u8> {
-        self.0.deploy_without_args()
+    /// Creates the bytes that are used as the input to an EVM transaction for deploying
+    /// the Factory contract. This function does not interact with any EVM itself, it only
+    /// produces the bytes needed to pass to an EVM.
+    pub fn create_deploy_bytes(&self) -> Vec<u8> {
+        self.0.create_deploy_bytes_without_args()
     }
 
     pub fn deployed_at(self, address: Address) -> Factory {
@@ -65,13 +68,16 @@ impl PositionManagerConstructor {
         Self(ContractConstructor::from_extended_json(contract_path))
     }
 
-    pub fn deploy(
+    /// Creates the bytes that are used as the input to an EVM transaction for deploying
+    /// the PositionManager contract. This function does not interact with any EVM itself, it only
+    /// produces the bytes needed to pass to an EVM.
+    pub fn create_deploy_bytes(
         &self,
         factory: Address,
         wrapped_eth: Address,
         token_descriptor: Address,
     ) -> Vec<u8> {
-        self.0.deploy_with_args(&[
+        self.0.create_deploy_bytes_with_args(&[
             ethabi::Token::Address(factory.raw()),
             ethabi::Token::Address(wrapped_eth.raw()),
             ethabi::Token::Address(token_descriptor.raw()),
@@ -84,8 +90,16 @@ impl PositionManagerConstructor {
 }
 
 impl Factory {
-    pub fn create_pool(&self, token_a: Address, token_b: Address, fee: U256) -> ContractInput {
-        let data = self.0.call_method_with_args(
+    /// Creates the bytes that are used as the input to an EVM transaction for calling the
+    /// `createPool` function of the Factory contract. This function does not interact with any EVM
+    /// itself, it only produces the bytes needed to pass to an EVM.
+    pub fn create_call_create_pool_bytes(
+        &self,
+        token_a: Address,
+        token_b: Address,
+        fee: U256,
+    ) -> ContractInput {
+        let data = self.0.create_call_method_bytes_with_args(
             "createPool",
             &[
                 ethabi::Token::Address(token_a.raw()),
@@ -108,19 +122,25 @@ impl Pool {
         })
     }
 
-    pub fn initialize(&self, price: U256) -> ContractInput {
+    /// Creates the bytes that are used as the input to an EVM transaction for calling the
+    /// `initialize` function of the Pool contract. This function does not interact with any EVM
+    /// itself, it only produces the bytes needed to pass to an EVM.
+    pub fn create_initialize_call_bytes(&self, price: U256) -> ContractInput {
         let data = self
             .0
-            .call_method_with_args("initialize", &[ethabi::Token::Uint(price)]);
+            .create_call_method_bytes_with_args("initialize", &[ethabi::Token::Uint(price)]);
         ContractInput(data)
     }
 }
 
 impl PositionManager {
-    pub fn mint(&self, params: MintParams) -> ContractInput {
+    /// Creates the bytes that are used as the input to an EVM transaction for calling the
+    /// `mint` function of the PositionManager contract. This function does not interact with any EVM
+    /// itself, it only produces the bytes needed to pass to an EVM.
+    pub fn create_mint_call_bytes(&self, params: MintParams) -> ContractInput {
         let tick_lower = Self::i64_to_u256(params.tick_lower);
         let tick_upper = Self::i64_to_u256(params.tick_upper);
-        let data = self.0.call_method_with_args(
+        let data = self.0.create_call_method_bytes_with_args(
             "mint",
             &[ethabi::Token::Tuple(vec![
                 ethabi::Token::Address(params.token0.raw()),
@@ -156,8 +176,11 @@ impl SwapRouterConstructor {
         Self(ContractConstructor::from_extended_json(contract_path))
     }
 
-    pub fn deploy(&self, factory: Address, wrapped_eth: Address) -> Vec<u8> {
-        self.0.deploy_with_args(&[
+    /// Creates the bytes that are used as the input to an EVM transaction for deploying
+    /// the SwapRouter contract. This function does not interact with any EVM itself, it only
+    /// produces the bytes needed to pass to an EVM.
+    pub fn create_deploy_bytes(&self, factory: Address, wrapped_eth: Address) -> Vec<u8> {
+        self.0.create_deploy_bytes_with_args(&[
             ethabi::Token::Address(factory.raw()),
             ethabi::Token::Address(wrapped_eth.raw()),
         ])
@@ -180,7 +203,7 @@ impl UniswapTestContext {
     pub async fn new(aurora: AuroraEngine, proxy_account: workspaces::Account) -> Self {
         let factory_constructor = FactoryConstructor::load();
         let factory_address = aurora
-            .deploy_evm_contract(factory_constructor.deploy())
+            .deploy_evm_contract(factory_constructor.create_deploy_bytes())
             .await
             .unwrap();
         // Just deploying any ERC-20 contract; doesn't need to actually be wrapped ETH because
@@ -188,13 +211,13 @@ impl UniswapTestContext {
         let weth_address = {
             let constructor = erc20::Constructor::load().await.unwrap();
             aurora
-                .deploy_evm_contract(constructor.deploy_code("Wrapped Ether", "WETH"))
+                .deploy_evm_contract(constructor.create_deploy_bytes("Wrapped Ether", "WETH"))
                 .await
                 .unwrap()
         };
         let manager_constructor = PositionManagerConstructor::load();
         let manager_address = aurora
-            .deploy_evm_contract(manager_constructor.deploy(
+            .deploy_evm_contract(manager_constructor.create_deploy_bytes(
                 factory_address,
                 weth_address,
                 Address::from_array([0; 20]),
@@ -203,7 +226,9 @@ impl UniswapTestContext {
             .unwrap();
         let router_constructor = SwapRouterConstructor::load();
         let router_address = aurora
-            .deploy_evm_contract(router_constructor.deploy(factory_address, weth_address))
+            .deploy_evm_contract(
+                router_constructor.create_deploy_bytes(factory_address, weth_address),
+            )
             .await
             .unwrap();
 
@@ -220,7 +245,7 @@ impl UniswapTestContext {
         let constructor = erc20::Constructor::load().await.unwrap();
         let address = self
             .aurora
-            .deploy_evm_contract(constructor.deploy_code(name, symbol))
+            .deploy_evm_contract(constructor.create_deploy_bytes(name, symbol))
             .await
             .unwrap();
         let token = erc20::ERC20 {
@@ -233,7 +258,11 @@ impl UniswapTestContext {
             );
         let mint_result = self
             .aurora
-            .call_evm_contract(address, token.mint(recipient, mint_amount), Wei::zero())
+            .call_evm_contract(
+                address,
+                token.create_mint_call_bytes(recipient, mint_amount),
+                Wei::zero(),
+            )
             .await
             .unwrap();
         assert!(mint_result.status.is_ok(), "Mint failed: {:?}", mint_result);
@@ -241,9 +270,11 @@ impl UniswapTestContext {
     }
 
     pub async fn create_pool(&self, token_a: &erc20::ERC20, token_b: &erc20::ERC20) -> Pool {
-        let input = self
-            .factory
-            .create_pool(token_a.address, token_b.address, POOL_FEE.into());
+        let input = self.factory.create_call_create_pool_bytes(
+            token_a.address,
+            token_b.address,
+            POOL_FEE.into(),
+        );
         let result = self
             .aurora
             .call_evm_contract(self.factory.0.address, input, Wei::zero())
@@ -256,7 +287,7 @@ impl UniswapTestContext {
         let pool = Pool::from_address(address);
 
         // 2^96 corresponds to a price ratio of 1
-        let input = pool.initialize(U256::from(2).pow(U256::from(96)));
+        let input = pool.create_initialize_call_bytes(U256::from(2).pow(U256::from(96)));
         let result = self
             .aurora
             .call_evm_contract(address, input, Wei::zero())
@@ -301,7 +332,7 @@ impl UniswapTestContext {
             recipient,
             deadline: U256::MAX, // no deadline
         };
-        let input = self.manager.mint(params);
+        let input = self.manager.create_mint_call_bytes(params);
         let result = self
             .aurora
             .call_evm_contract_with(
@@ -320,7 +351,7 @@ impl UniswapTestContext {
     }
 
     pub async fn approve_erc20(&self, token: &erc20::ERC20, spender: Address, amount: U256) {
-        let input = token.approve(spender, amount);
+        let input = token.create_approve_call_bytes(spender, amount);
         let result = self
             .aurora
             .call_evm_contract_with(&self.proxy_account, token.address, input, Wei::zero())

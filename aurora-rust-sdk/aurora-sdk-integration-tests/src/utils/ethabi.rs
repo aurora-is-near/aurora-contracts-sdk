@@ -28,15 +28,26 @@ impl ContractConstructor {
         }
     }
 
-    pub fn deploy_without_constructor(&self) -> Vec<u8> {
+    /// Creates the bytes that are used as the input to an EVM transaction for deploying
+    /// the Solidity contract (without invoking any constructor). This function does not
+    /// interact with any EVM itself, it only produces the bytes needed to pass to an EVM.
+    pub fn create_deploy_bytes_without_constructor(&self) -> Vec<u8> {
         self.code.clone()
     }
 
-    pub fn deploy_without_args(&self) -> Vec<u8> {
-        self.deploy_with_args(&[])
+    /// Creates the bytes that are used as the input to an EVM transaction for deploying
+    /// the Solidity contract (includes invoking the constructor that takes no arguments).
+    /// This function does not interact with any EVM itself, it only produces the bytes
+    /// needed to pass to an EVM.
+    pub fn create_deploy_bytes_without_args(&self) -> Vec<u8> {
+        self.create_deploy_bytes_with_args(&[])
     }
 
-    pub fn deploy_with_args(&self, args: &[ethabi::Token]) -> Vec<u8> {
+    /// Creates the bytes that are used as the input to an EVM transaction for deploying
+    /// the Solidity contract (includes invoking the constructor with the given arguments).
+    /// This function does not interact with any EVM itself, it only produces the bytes
+    /// needed to pass to an EVM.
+    pub fn create_deploy_bytes_with_args(&self, args: &[ethabi::Token]) -> Vec<u8> {
         self.abi
             .constructor()
             .unwrap()
@@ -52,11 +63,23 @@ pub struct DeployedContract {
 }
 
 impl DeployedContract {
-    pub fn call_method_without_args(&self, method_name: &str) -> Vec<u8> {
-        self.call_method_with_args(method_name, &[])
+    /// Creates the bytes that are used as the input to an EVM transaction for calling the
+    /// given function of the Solidity contract. The function must not take any arguments.
+    /// This function does not interact with any EVM itself, it only produces the bytes needed
+    /// to pass to an EVM.
+    pub fn create_call_method_bytes_without_args(&self, method_name: &str) -> Vec<u8> {
+        self.create_call_method_bytes_with_args(method_name, &[])
     }
 
-    pub fn call_method_with_args(&self, method_name: &str, args: &[ethabi::Token]) -> Vec<u8> {
+    /// Creates the bytes that are used as the input to an EVM transaction for calling the
+    /// given function of the Solidity contract (including passing in the given arguments).
+    /// This function does not interact with any EVM itself, it only produces the bytes needed
+    /// to pass to an EVM.
+    pub fn create_call_method_bytes_with_args(
+        &self,
+        method_name: &str,
+        args: &[ethabi::Token],
+    ) -> Vec<u8> {
         self.abi
             .function(method_name)
             .unwrap()

@@ -18,7 +18,10 @@ impl Constructor {
         Ok(Self { code, abi })
     }
 
-    pub fn deploy_code(&self, name: &str, symbol: &str) -> Vec<u8> {
+    /// Creates the bytes that are used as the input to an EVM transaction for deploying
+    /// the ERC-20 contract. This function does not interact with any EVM itself, it only
+    /// produces the bytes needed to pass to an EVM.
+    pub fn create_deploy_bytes(&self, name: &str, symbol: &str) -> Vec<u8> {
         // Unwraps are safe because we statically know there is a constructor and it
         // takes two strings as input.
         self.abi
@@ -41,7 +44,10 @@ pub struct ERC20 {
 }
 
 impl ERC20 {
-    pub fn mint(&self, recipient: Address, amount: U256) -> ContractInput {
+    /// Creates the bytes that are used as the input to an EVM transaction for calling the
+    /// `mint` function of the ERC-20 contract. This function does not interact with any EVM
+    /// itself, it only produces the bytes needed to pass to an EVM.
+    pub fn create_mint_call_bytes(&self, recipient: Address, amount: U256) -> ContractInput {
         let data = self
             .abi
             .function("mint")
@@ -54,7 +60,10 @@ impl ERC20 {
         ContractInput(data)
     }
 
-    pub fn balance_of(&self, address: Address) -> ContractInput {
+    /// Creates the bytes that are used as the input to an EVM transaction for calling the
+    /// `balance_of` function of the ERC-20 contract. This function does not interact with any EVM
+    /// itself, it only produces the bytes needed to pass to an EVM.
+    pub fn create_balance_of_call_bytes(&self, address: Address) -> ContractInput {
         let data = self
             .abi
             .function("balanceOf")
@@ -64,7 +73,10 @@ impl ERC20 {
         ContractInput(data)
     }
 
-    pub fn approve(&self, spender: Address, amount: U256) -> ContractInput {
+    /// Creates the bytes that are used as the input to an EVM transaction for calling the
+    /// `approve` function of the ERC-20 contract. This function does not interact with any EVM
+    /// itself, it only produces the bytes needed to pass to an EVM.
+    pub fn create_approve_call_bytes(&self, spender: Address, amount: U256) -> ContractInput {
         let data = self
             .abi
             .function("approve")

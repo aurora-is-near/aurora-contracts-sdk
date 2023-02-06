@@ -127,7 +127,9 @@ impl AuroraEngine {
         let result = self
             .call_evm_contract(
                 wnear.aurora_token.address,
-                wnear.aurora_token.mint(dest_address, amount.into()),
+                wnear
+                    .aurora_token
+                    .create_mint_call_bytes(dest_address, amount.into()),
                 Wei::zero(),
             )
             .await?;
@@ -141,7 +143,12 @@ impl AuroraEngine {
         address: Address,
     ) -> anyhow::Result<U256> {
         let result = self
-            .view_evm_contract(erc20.address, erc20.balance_of(address), None, Wei::zero())
+            .view_evm_contract(
+                erc20.address,
+                erc20.create_balance_of_call_bytes(address),
+                None,
+                Wei::zero(),
+            )
             .await?;
         let balance = unwrap_success(result).map(|bytes| U256::from_big_endian(&bytes))?;
         Ok(balance)

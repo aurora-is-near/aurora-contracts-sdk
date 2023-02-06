@@ -29,14 +29,18 @@ async fn test_deploy_erc20() {
     let engine = crate::aurora_engine::deploy_latest(&worker).await.unwrap();
     let constructor = erc20::Constructor::load().await.unwrap();
     let address = engine
-        .deploy_evm_contract(constructor.deploy_code("TEST", "AAA"))
+        .deploy_evm_contract(constructor.create_deploy_bytes("TEST", "AAA"))
         .await
         .unwrap();
     let erc20 = constructor.deployed_at(address);
     let mint_amount = 7654321.into();
     let recipient = Address::decode("000000000000000000000000000000000000000a").unwrap();
     let result = engine
-        .call_evm_contract(address, erc20.mint(recipient, mint_amount), Wei::zero())
+        .call_evm_contract(
+            address,
+            erc20.create_mint_call_bytes(recipient, mint_amount),
+            Wei::zero(),
+        )
         .await
         .unwrap();
     crate::aurora_engine::unwrap_success(result.status).unwrap();

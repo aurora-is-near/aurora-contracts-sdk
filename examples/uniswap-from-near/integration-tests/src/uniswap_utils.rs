@@ -44,6 +44,8 @@ pub struct MintParams {
 
 impl FactoryConstructor {
     pub fn load() -> Self {
+        // Note the various json files in `RES_PATH` (e.g. UniswapV3Factory.json) are obtained
+        // by compiling the Uniswap Solidity contracts (using Hardhat).
         let contract_path = Path::new(RES_PATH).join("UniswapV3Factory.json");
         Self(ContractConstructor::from_extended_json(contract_path))
     }

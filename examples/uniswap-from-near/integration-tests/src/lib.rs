@@ -37,14 +37,14 @@ mod tests {
         ctx.add_equal_liquidity(LIQUIDITY_AMOUNT.into(), &token_a, &token_b)
             .await;
 
-        // Deploy our contract for swapping on uniswap from NEAR
+        // Initialize our UniswapProxy contract
         contract
             .create(engine.inner.id(), &ctx.swap_router.0.address.encode())
             .await
             .unwrap();
 
         // The EVM address of our contract when it calls Aurora
-        let contact_aurora_address =
+        let contract_aurora_address =
             aurora_sdk_integration_tests::aurora_engine_sdk::types::near_account_to_evm_address(
                 ctx.proxy_account.id().as_bytes(),
             );
@@ -63,12 +63,12 @@ mod tests {
 
         // Confirm balances are correct
         let amount_a = engine
-            .erc20_balance_of(&token_a, contact_aurora_address)
+            .erc20_balance_of(&token_a, contract_aurora_address)
             .await
             .unwrap()
             .as_u64();
         let amount_b = engine
-            .erc20_balance_of(&token_b, contact_aurora_address)
+            .erc20_balance_of(&token_b, contract_aurora_address)
             .await
             .unwrap()
             .as_u64();
@@ -82,6 +82,9 @@ mod tests {
         assert_eq!(MINT_AMOUNT - LIQUIDITY_AMOUNT + OUTPUT_AMOUNT, amount_b);
     }
 
+    // This module contains convenience functions for interacting with the UniswapProxy contract
+    // from the test code above.
+    //
     // Future enhancement: should be able to derive this interface automatically using the
     // [near-abi](https://github.com/near/abi) project once it is mature enough.
     mod contract_interface {
@@ -92,6 +95,8 @@ mod tests {
         use uniswap_from_near::SerializableExactOutputSingleParams;
 
         pub struct UniswapProxy {
+            /// The `workspaces::Contract` instance here must have the UniswapProxy example
+            /// contract deployed; it cannot be any `Contract`.
             pub contract: Contract,
         }
 
@@ -140,6 +145,11 @@ mod tests {
                     .max_gas()
                     .transact()
                     .await?;
+
+                // Note: the promise returned by `UniswapProxy::exact_output_single` is
+                // fully resolved by the workspaces library. This `into_result` will
+                // return an error if `UniswapProxy::exact_output_single` or
+                // `UniswapProxy::parse_exact_output_single_result` fail.
                 result.into_result()?;
                 Ok(())
             }

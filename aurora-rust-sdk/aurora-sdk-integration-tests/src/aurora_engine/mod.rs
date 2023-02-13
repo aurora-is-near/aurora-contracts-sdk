@@ -164,9 +164,17 @@ impl AuroraEngine {
     }
 
     pub async fn deploy_evm_contract(&self, code: Vec<u8>) -> anyhow::Result<Address> {
-        let outcome = self
-            .inner
-            .call("deploy_code")
+        self.deploy_evm_contract_with(self.inner.as_account(), code)
+            .await
+    }
+
+    pub async fn deploy_evm_contract_with(
+        &self,
+        account: &workspaces::Account,
+        code: Vec<u8>,
+    ) -> anyhow::Result<Address> {
+        let outcome = account
+            .call(self.inner.id(), "deploy_code")
             .args(code)
             .max_gas()
             .transact()

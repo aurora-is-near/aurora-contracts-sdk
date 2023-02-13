@@ -8,6 +8,8 @@ Since the Aurora EVM is itself a smart contract on NEAR, this feature boils down
 Developers might be interested in this feature for any number of reasons; the NEAR ecosystem is large.
 But for example they may be interested in integrating their dapp with liquidity pools on NEAR (e.g. [ref.finance](https://www.ref.finance/)) or NFT marketplaces.
 
+As a companion to the text description below, check out the [diagrams that have been crafted to depict the XCC flow](https://github.com/aurora-is-near/aurora-contracts-sdk/issues/5).
+
 ## How to use XCC
 
 The Aurora EVM has a special precompile address (`0x516Cded1D16af10CAd47D6D49128E2eB7d27b372`) which other EVM smart contracts can call to access the XCC feature.

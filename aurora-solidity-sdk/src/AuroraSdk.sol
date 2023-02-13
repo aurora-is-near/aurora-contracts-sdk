@@ -13,7 +13,7 @@ address constant XCC_PRECOMPILE = 0x516Cded1D16af10CAd47D6D49128E2eB7d27b372;
 // Address of predecessor account id precompile in Aurora.
 // It allows getting the predecessor account id of the current call.
 address constant PREDECESSOR_ACCOUNT_ID_PRECOMPILE = 0x723FfBAbA940e75E7BF5F6d61dCbf8d9a4De0fD7;
-// Address of predecessor account id precompile in Aurora.
+// Address of current account id precompile in Aurora.
 // It allows getting the current account id of the current call.
 address constant CURRENT_ACCOUNT_ID_PRECOMPILE = 0xfeFAe79E4180Eb0284F261205E3F8CEA737afF56;
 // Addresss of promise result precompile in Aurora.
@@ -113,7 +113,7 @@ library AuroraSdk {
         return string(returnData);
     }
 
-    /// Crease a base promise. This is not immediately schedule for execution
+    /// Creates a base promise. This is not immediately scheduled for execution
     /// until transact is called. It can be combined with other promises using
     /// `then` combinator.
     ///
@@ -146,7 +146,7 @@ library AuroraSdk {
     }
 
     /// Similar to `call`. It is a wrapper that simplifies the creation of a promise
-    /// to a controct inside `Aurora`.
+    /// to a contract inside `Aurora`.
     function auroraCall(NEAR storage near, address target, bytes memory args, uint128 nearBalance, uint64 nearGas)
         public
         returns (PromiseCreateArgs memory)
@@ -162,7 +162,9 @@ library AuroraSdk {
     }
 
     /// Schedule a base promise to be executed on NEAR. After this function is called
-    /// the promise should not be used anymore.
+    /// the promise should not be used anymore (i.e. should not be used with any further combinators).
+    /// The promise also cannot be used to obtain any result of the call. A result can only be used
+    /// by attaching a callback using `then` prior to calling `transact`.
     function transact(PromiseCreateArgs memory nearPromise) public {
         (bool success, bytes memory returnData) =
             XCC_PRECOMPILE.call(nearPromise.encodeCrossContractCallArgs(ExecutionMode.Eager));

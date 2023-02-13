@@ -56,6 +56,7 @@ mod tests {
             .unwrap()
             .into_result()
             .unwrap();
+        // The contract must be made "Live" to accept transactions.
         social_db
             .call("set_status")
             .args_json(serde_json::json!({"status": "Live"}))
@@ -77,8 +78,8 @@ mod tests {
                 user_account.id().as_bytes(),
             );
 
-        // Deploy EVM contract that will be the proxy on Aurora for the Social DB contract on Near
-        let contract = deploy_contract(
+        // Deploy EVM contract (`SocialDB.sol`) that will be the proxy on Aurora for the Social DB contract on Near
+        let contract = deploy_social_db_sol_contract(
             &engine,
             &user_account,
             social_db.id(),
@@ -165,7 +166,7 @@ mod tests {
         assert_eq!(value, set_data);
     }
 
-    async fn deploy_contract(
+    async fn deploy_social_db_sol_contract(
         engine: &AuroraEngine,
         user_account: &workspaces::Account,
         social_db_account_id: &AccountId,

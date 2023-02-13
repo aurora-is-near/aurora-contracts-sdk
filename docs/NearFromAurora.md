@@ -37,6 +37,7 @@ This is to respect the revert semantics of the EVM; a revert should undo any eff
 If the XCC precompile were to eagerly cause NEAR calls to happen then there would be no way to cancel them in the case of a revert.
 This is because NEAR cross-contract calls happen asynchronously.
 While each synchronous contract execution is atomic, the whole asynchronous transaction is not; if an asynchronous call fails it does not revert the effects of the prior calls that made it.
+For more information about NEAR transactions in general, see [their documentation](https://docs.near.org/concepts/basics/transactions/overview).
 Therefore, the asynchronous NEAR call a developer requests the XCC precompile to make does not happen until the EVM transaction is complete.
 This has implications for how to use the result of a NEAR call, as discussed above.
 Namely, the result of a NEAR call must be handled as a callback to the EVM.
@@ -63,22 +64,44 @@ The `call` method can be used by any NEAR contract to interact with the EVM, not
 The mechanism the `call` method uses to assign an EVM address to the predecessor account ID is the same for all accounts (no special case is made for XCC sub-accounts).
 This leads to the quirk we mentioned above that the sender address in the callback is not equal to the address that initiated the XCC.
 The way the address is calculated is by taking the last 20 bytes of the keccak hash of the NEAR account ID (see [Aurora contract code](https://github.com/aurora-is-near/aurora-engine/blob/2.8.1/engine-sdk/src/types.rs#L25-L27)).
+20-byte addresses are standard in Ethereum, and are derivied from the public key of the account in the same way as we derive an address from a Near account ID (taking the last 20 bytes of the keccak hash).
+Therefore, we do not concern ourselves with the possibility of an address collision.
+It would be quite a difficult proof of work problem to find two account IDs that give the same EVM address, and the probability of it happening randomly is incredibly low!
 
 ### The data structure used by XCC
 
 The XCC precompile accepts borsh-encoded data of the following type:
 
 ```rust
+/// The XCC request can be `Eager` or `Delayed`.
+/// In an `Eager` request, the call will happen automatically after the EVM execution is finished.
+/// In a `Delayed` request the data to make the NEAR call is persisted in the address' sub-account
+/// (the sub-account for each address concept is discussed above).
+/// The benefit of `Eager` over `Delayed` is that the NEAR call happens automatically without the
+/// need for any other NEAR account.
+/// The benefit of `Delayed` is that more complex behavior is possible because the total gas limit
+/// on NEAR is reset between transactions.
+/// To elaborate on that a little more, there is a maximum amount of gas that is allowed to be
+/// attached to a NEAR transaction (at the time of writing it is 300 Tgas), and each asynchronous
+/// call requires some gas to be attached to it from that initial amount in the transaction.
+/// Therefore, if there is some complicated EVM logic followed by a cross-contract call to some
+/// complicated NEAR logic then it may not be possible to fit all that within the gas limit.
+/// Using a `Delayed` XCC request effectively doubles the amount of gas available because the EVM
+/// execution will happen in a separate transaction (with a separate gas limit) from the subsequent NEAR execution.
 pub enum CrossContractCallArgs {
     Eager(PromiseArgs),
     Delayed(PromiseArgs),
 }
 
-// Where:
-
+/// describes the NEAR call to be performed
 pub enum PromiseArgs {
+    /// A call to a single NEAR contract.
     Create(PromiseCreateArgs),
+    /// A NEAR call with single callback.
+    /// This is useful to make a single NEAR call and then callback to Aurora, for example.
     Callback(PromiseWithCallbackArgs),
+    /// A recursive data type that captures arbitrary promise combinators (`then`, `and` are
+    /// promise combinators because they combine multiple promises into a single promise).
     Recursive(NearPromise),
 }
 
@@ -123,19 +146,5 @@ pub enum PromiseAction {
 }
 ```
 
-There is a lot to unpack here, but let's break it down.
-
-First, the XCC request can be `Eager` or `Delayed`.
-In an `Eager` request, the call will happen automatically after the EVM execution is finished.
-In a `Delayed` request the data to make the NEAR call is persisted in the address' sub-account (the sub-account for each address concept is discussed above).
-To make the call happen an additional transaction will need to be sent to the sub-account from another NEAR account.
-The benefit of `Eager` over `Delayed` is that the NEAR call happens automatically without the need for any other NEAR account.
-The benefit of `Delayed` is that more complex behavior is possible because the total gas limit on NEAR is reset between transactions.
-To elaborate on that a little more, there is a maximum amount of gas that is allowed to be attached to a NEAR transaction (at the time of writing it is 300 Tgas), and each asynchronous call requires some gas to be attached to it from that initial amount in the transaction.
-Therefore, if there is some complicated EVM logic followed by a cross-contract call to some complicated NEAR logic then it may not be possible to fit all that within the gas limit.
-Using a `Delayed` XCC request effectively doubles the amount of gas available because the EVM execution will happen in a separate transaction (with a separate gas limit) from the subsequent NEAR execution.
-
-Next, in both `Eager` and `Delayed` cases, there is the data which describes the NEAR call to be performed, `PromiseArgs`.
-This is an enum with variants that themselves are enums, but essentially there are: calls to a single NEAR contract (`PromiseCreateArgs`), a call with single callback which are useful to make a single NEAR call and then callback to Aurora (`PromiseWithCallbackArgs`), and a recursive data type (`NearPromise`) that captures arbitrary promise combinators (multiple callbacks, sums of multiple calls, etc).
 For most applications the `PromiseWithCallbackArgs` should be sufficient.
 If your application needs the more general `NearPromise` then see the [NEAR documentation](https://nomicon.io/RuntimeSpec/Components/BindingsSpec/PromisesAPI) for more information.

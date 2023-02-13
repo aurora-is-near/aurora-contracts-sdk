@@ -24,6 +24,8 @@ enum PromiseArgsVariant
     Callback,
     /// Description of arbitrary NEAR promise. Allows applying combinators
     /// recursively, multiple action types and batched actions.
+    /// See https://nomicon.io/RuntimeSpec/Components/BindingsSpec/PromisesAPI
+    /// for a complete description of what is possible.
     Recursive
 }
 

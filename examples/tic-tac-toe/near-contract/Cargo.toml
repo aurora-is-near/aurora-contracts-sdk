@@ -7,5 +7,5 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-aurora-sdk = { path = "../../../aurora-rust-sdk/aurora-sdk" }
+near-sdk = { version = "4.1", features = ["abi"] }
 serde = { version = "1", features = ["derive"] }

@@ -1,5 +1,3 @@
-use aurora_sdk::near_sdk;
-
 pub mod logic;
 pub mod types;
 

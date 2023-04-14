@@ -16,6 +16,8 @@ mod tests {
     const BOUNTY_PR_URL: &str = "https://github.com/some-org/some-repo/pull/666";
     const BOUNTY_REWARD: u64 = 500;
     const BOUNTY_DURATION: u64 = 5_000_000;
+    const DEV_USERNAME: &str = "dev_username";
+    const DEV_COMMENT: &str = "A cool description of why you should pick me";
 
     #[tokio::test]
     async fn test_contract() {
@@ -100,18 +102,31 @@ mod tests {
             .unwrap();
         let bounty_id = U256::from_big_endian(&unwrap_success(result.status).unwrap());
 
-        // TODO: list bounties and confirm it is present.
+        // View the list of bounties to confirm the new bounty is there
+        let open_bounties = view_open_bounties(&bounty_contract, &engine).await;
+        assert_eq!(
+            open_bounties,
+            vec![vec![
+                ethabi::Token::Uint(bounty_id),
+                ethabi::Token::String(BOUNTY_PR_URL.into()),
+                ethabi::Token::Address(reward_token.address.raw()),
+                ethabi::Token::Uint(BOUNTY_REWARD.into()),
+                ethabi::Token::Uint(BOUNTY_DURATION.into()),
+                ethabi::Token::Address(bounty_creator_address.raw()), // owner
+            ]]
+        );
 
         // Developer submits intent to complete bounty.
         let bounty_dev_address = near_account_to_evm_address(bounty_dev.id().as_bytes());
         let calldata = bounty_contract
             .abi
-            .function("submitIntent")
+            .function("submitApplication")
             .unwrap()
             .encode_input(&[
                 ethabi::Token::Uint(bounty_id),
                 ethabi::Token::Address(bounty_dev_address.raw()),
-                ethabi::Token::String("dev_username".into()),
+                ethabi::Token::String(DEV_USERNAME.into()),
+                ethabi::Token::String(DEV_COMMENT.into()),
             ])
             .unwrap();
         let result = engine
@@ -124,6 +139,51 @@ mod tests {
             .await
             .unwrap();
         unwrap_success(result.status).unwrap();
+
+        // The bounty creator approves the developer's application
+        let calldata = bounty_contract
+            .abi
+            .function("approveApplication")
+            .unwrap()
+            .encode_input(&[
+                ethabi::Token::Uint(bounty_id),
+                ethabi::Token::Address(bounty_dev_address.raw()),
+            ])
+            .unwrap();
+        let result = engine
+            .call_evm_contract_with(
+                &bounty_creator,
+                bounty_contract.address,
+                ContractInput(calldata),
+                Wei::zero(),
+            )
+            .await
+            .unwrap();
+        unwrap_success(result.status).unwrap();
+
+        // Bounty is no longer open
+        let open_bounties = view_open_bounties(&bounty_contract, &engine).await;
+        assert!(open_bounties.is_empty());
+
+        // List the locked bounties to see it is there
+        let locked_bounties = view_locked_bounties(&bounty_contract, &engine).await;
+        assert_eq!(locked_bounties.len(), 1);
+        assert_eq!(
+            // ignore `lockedHeight` since it's not easy to determine that.
+            &locked_bounties[0][0..3],
+            &[
+                ethabi::Token::Tuple(vec![
+                    ethabi::Token::Uint(bounty_id),
+                    ethabi::Token::String(BOUNTY_PR_URL.into()),
+                    ethabi::Token::Address(reward_token.address.raw()),
+                    ethabi::Token::Uint(BOUNTY_REWARD.into()),
+                    ethabi::Token::Uint(BOUNTY_DURATION.into()),
+                    ethabi::Token::Address(bounty_creator_address.raw()), // owner
+                ]),
+                ethabi::Token::Address(bounty_dev_address.raw()),
+                ethabi::Token::String(DEV_USERNAME.into()),
+            ]
+        );
 
         // Some time later the work is finished.
         // Developer begins the process of claiming the bounty
@@ -196,6 +256,10 @@ mod tests {
         .unwrap();
         assert_eq!(result, vec![ethabi::Token::Bool(true)]);
 
+        // Confirm the bounty is no longer present in locked bounties
+        let locked_bounties = view_locked_bounties(&bounty_contract, &engine).await;
+        assert!(locked_bounties.is_empty());
+
         // Confirm the developer received their reward
         let calldata = reward_token.create_balance_of_call_bytes(bounty_dev_address);
         let result = engine
@@ -204,6 +268,59 @@ mod tests {
             .unwrap();
         let amount = U256::from_big_endian(&unwrap_success(result).unwrap());
         assert_eq!(amount, U256::from(BOUNTY_REWARD));
+    }
+
+    async fn view_open_bounties(
+        bounty_contract: &DeployedContract,
+        engine: &AuroraEngine,
+    ) -> Vec<Vec<ethabi::Token>> {
+        view_array_output("listOpenBounties", bounty_contract, engine).await
+    }
+
+    async fn view_locked_bounties(
+        bounty_contract: &DeployedContract,
+        engine: &AuroraEngine,
+    ) -> Vec<Vec<ethabi::Token>> {
+        view_array_output("listLockedBounties", bounty_contract, engine).await
+    }
+
+    async fn view_array_output(
+        method_name: &str,
+        bounty_contract: &DeployedContract,
+        engine: &AuroraEngine,
+    ) -> Vec<Vec<ethabi::Token>> {
+        let calldata = bounty_contract
+            .abi
+            .function(method_name)
+            .unwrap()
+            .encode_input(&[])
+            .unwrap();
+        let result = engine
+            .view_evm_contract(
+                bounty_contract.address,
+                ContractInput(calldata),
+                None,
+                Wei::zero(),
+            )
+            .await
+            .unwrap();
+        let result_bytes = unwrap_success(result).unwrap();
+        let mut output = bounty_contract
+            .abi
+            .function(method_name)
+            .unwrap()
+            .decode_output(&result_bytes)
+            .unwrap();
+        match output.pop() {
+            Some(ethabi::Token::Array(inner)) => inner
+                .into_iter()
+                .map(|x| match x {
+                    ethabi::Token::Tuple(fields) => fields,
+                    _ => panic!("Unexpected return value"),
+                })
+                .collect(),
+            _ => panic!("Unexpected return value"),
+        }
     }
 
     async fn deploy_oracle(

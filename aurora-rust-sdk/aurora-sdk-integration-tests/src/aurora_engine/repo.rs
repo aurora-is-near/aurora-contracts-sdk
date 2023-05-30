@@ -201,7 +201,7 @@ async fn add_wasm_target(engine_path: &Path, toolchain: &str) -> anyhow::Result<
 }
 
 /// Recursively moves up the path tree, starting with the current directory, to find a `target`
-/// directroy.
+/// directory.
 fn find_target_dir() -> anyhow::Result<PathBuf> {
     let pwd = Path::new(".").canonicalize()?;
     let mut current_base = pwd.as_path();
@@ -243,4 +243,13 @@ impl TryFrom<ActionOutput> for () {
             ))),
         }
     }
+}
+
+#[test]
+fn test_find_target_dir() {
+    let result = find_target_dir().unwrap();
+    assert_eq!(
+        result,
+        Path::new("../").canonicalize().unwrap().join(TARGET)
+    );
 }

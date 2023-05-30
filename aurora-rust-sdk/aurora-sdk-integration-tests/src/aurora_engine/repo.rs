@@ -6,7 +6,8 @@ use std::{
 use tokio::sync::Mutex;
 
 pub const LATEST_ENGINE_VERSION: &str = "2.8.1";
-const ENGINE_PATH: &str = "../target/aurora-engine";
+const TARGET: &str = "target";
+const ENGINE_PATH: &str = "aurora-engine";
 /// A lock to prevent multiple tests from modifying the aurora-engine repo at the same time.
 static ENGINE_LOCK: Mutex<()> = Mutex::const_new(());
 
@@ -74,10 +75,10 @@ impl<T> AuroraEngineRepoActions<T> {
 impl<T: TryFrom<ActionOutput, Error = anyhow::Error>> AuroraEngineRepoActions<T> {
     pub async fn execute(self) -> anyhow::Result<T> {
         let _guard = ENGINE_LOCK.lock().await;
-        let engine_path = Path::new(ENGINE_PATH);
+        let engine_path = find_target_dir()?.join(ENGINE_PATH);
         let mut output = ActionOutput::Unit;
         for action in self.actions {
-            output = action.execute(engine_path).await?;
+            output = action.execute(&engine_path).await?;
         }
         output.try_into()
     }
@@ -199,6 +200,23 @@ async fn add_wasm_target(engine_path: &Path, toolchain: &str) -> anyhow::Result<
     Ok(())
 }
 
+/// Recursively moves up the path tree, starting with the current directory, to find a `target`
+/// directory.
+fn find_target_dir() -> anyhow::Result<PathBuf> {
+    let pwd = Path::new(".").canonicalize()?;
+    let mut current_base = pwd.as_path();
+    let mut result = current_base.join(TARGET);
+    while !result.exists() {
+        if let Some(p) = current_base.parent() {
+            current_base = p;
+        } else {
+            return Err(anyhow::Error::msg("Failed to find target directory"));
+        }
+        result = current_base.join(TARGET);
+    }
+    Ok(result)
+}
+
 impl TryFrom<ActionOutput> for Vec<u8> {
     type Error = anyhow::Error;
 
@@ -225,4 +243,13 @@ impl TryFrom<ActionOutput> for () {
             ))),
         }
     }
+}
+
+#[test]
+fn test_find_target_dir() {
+    let result = find_target_dir().unwrap();
+    assert_eq!(
+        result,
+        Path::new("../").canonicalize().unwrap().join(TARGET)
+    );
 }

@@ -1,7 +1,7 @@
 use crate::wnear::Wnear;
 use aurora_engine::parameters::{
-    CallArgs, DeployErc20TokenArgs, FunctionCallArgsV2, SubmitResult, TransactionStatus,
-    ViewCallArgs,
+    CallArgs, DeployErc20TokenArgs, FunctionCallArgsV2, NewCallArgs, NewCallArgsV2, SubmitResult,
+    TransactionStatus, ViewCallArgs,
 };
 use aurora_engine_types::{
     types::{Address, Wei},
@@ -35,12 +35,11 @@ pub async fn deploy_latest(worker: &Worker<Sandbox>) -> anyhow::Result<AuroraEng
         .create_tla_and_deploy(AURORA_ACCOUNT_ID.parse().unwrap(), sk, &wasm)
         .await?
         .into_result()?;
-    let new_args = aurora_engine::parameters::NewCallArgs {
+    let new_args = NewCallArgs::V2(NewCallArgsV2 {
         chain_id: aurora_engine_types::types::u256_to_arr(&TESTNET_CHAIN_ID.into()),
         owner_id: contract.id().as_ref().parse().unwrap(),
-        bridge_prover_id: contract.id().as_ref().parse().unwrap(),
         upgrade_delay_blocks: 0,
-    };
+    });
 
     // Initialize main contract
     contract

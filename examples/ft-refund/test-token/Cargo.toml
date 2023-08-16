@@ -1,0 +1,12 @@
+[package]
+name = "test-token"
+version = "0.1.0"
+authors = ["Mario Reder <mario@orderly.network>"]
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-contract-standards = "4.1"
+near-sdk = { version = "4.1", features = ["abi"] }

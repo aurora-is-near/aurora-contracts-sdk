@@ -1,0 +1,10 @@
+[package]
+name = "recursive-callbacks-integration-tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+aurora-sdk-integration-tests = { path = "../../../aurora-rust-sdk/aurora-sdk-integration-tests" }
+near-abi-client = "0.1.0"
+serde = "1"

@@ -74,6 +74,22 @@ impl ERC20 {
     }
 
     /// Creates the bytes that are used as the input to an EVM transaction for calling the
+    /// `allowance` function of the ERC-20 contract. This function does not interact with any EVM
+    /// itself, it only produces the bytes needed to pass to an EVM.
+    pub fn create_allowance_call_bytes(&self, owner: Address, spender: Address) -> ContractInput {
+        let data = self
+            .abi
+            .function("allowance")
+            .unwrap()
+            .encode_input(&[
+                ethabi::Token::Address(owner.raw()),
+                ethabi::Token::Address(spender.raw()),
+            ])
+            .unwrap();
+        ContractInput(data)
+    }
+
+    /// Creates the bytes that are used as the input to an EVM transaction for calling the
     /// `approve` function of the ERC-20 contract. This function does not interact with any EVM
     /// itself, it only produces the bytes needed to pass to an EVM.
     pub fn create_approve_call_bytes(&self, spender: Address, amount: U256) -> ContractInput {

@@ -11,14 +11,20 @@ pub struct FtRefund;
 impl FungibleTokenReceiver for FtRefund {
     fn ft_on_transfer(
         &mut self,
-        _sender_id: AccountId,
+        sender_id: AccountId,
         amount: U128,
         msg: String,
     ) -> PromiseOrValue<U128> {
+        black_hole(sender_id);
         if &msg == "refund" {
             PromiseOrValue::Value(amount)
         } else {
             PromiseOrValue::Value(0.into())
         }
     }
+}
+
+#[inline]
+fn black_hole<T>(_t: T) {
+    ()
 }

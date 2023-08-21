@@ -46,6 +46,14 @@ mod tests {
         let solidity_contract =
             deploy_solidity_contract(&engine, near_contract.id(), wnear.aurora_token.address).await;
 
+        let xcc_account = format!(
+            "{}.{}",
+            solidity_contract.inner.address.encode(),
+            engine.inner.id()
+        );
+
+        let xcc_implicit_address = types::near_account_to_evm_address(xcc_account.as_bytes());
+
         // Mint WNEAR for the engine implicit account to use
         engine
             .mint_wnear(
@@ -65,12 +73,24 @@ mod tests {
             )
             .await
             .unwrap();
+
         // Mint WNEAR for the account to use
         engine
             .mint_wnear(&wnear, address, 5_000_000_000_000_000_000_000_000)
             .await
             .unwrap();
 
+        // Mint WNEAR for the XCC implicit account to use
+        engine
+            .mint_wnear(
+                &wnear,
+                xcc_implicit_address,
+                5_000_000_000_000_000_000_000_000,
+            )
+            .await
+            .unwrap();
+
+        // Approve proxy contract to spend user's WNEAR
         let result = engine
             .call_evm_contract_with(
                 &account,
@@ -83,12 +103,6 @@ mod tests {
             .await
             .unwrap();
         aurora_engine::unwrap_success(result.status).unwrap();
-
-        let xcc_account = format!(
-            "{}.{}",
-            solidity_contract.inner.address.encode(),
-            engine.inner.id()
-        );
 
         // Initialize test token contract
         test_token_contract
@@ -174,6 +188,29 @@ mod tests {
         // assert ERC20 amount after bridging
         let erc20_balance = engine.erc20_balance_of(&test_erc20, address).await.unwrap();
         assert_eq!(erc20_balance, "1".into());
+
+        // Approve the proxy contract to spend the WNEAR of the xcc implicit address
+        solidity_contract.approve_wnear(&account).await.unwrap();
+
+        // View call to check the above transaction had the intended effect
+        let approve_amount = {
+            let result = engine
+                .view_evm_contract(
+                    wnear.aurora_token.address,
+                    wnear.aurora_token.create_allowance_call_bytes(
+                        xcc_implicit_address,
+                        solidity_contract.inner.address,
+                    ),
+                    None,
+                    Wei::zero(),
+                )
+                .await
+                .unwrap();
+            aurora_engine::unwrap_success(result)
+                .map(|bytes| U256::from_big_endian(&bytes))
+                .unwrap()
+        };
+        assert_eq!(approve_amount, U256::MAX);
 
         // Call the solidity contract. It will
         // - bridge the tokens from Aurora to Near
@@ -261,6 +298,27 @@ mod tests {
                                 ethabi::Token::String(token_id),
                                 ethabi::Token::Uint(amount.into()),
                             ])
+                            .unwrap(),
+                    ),
+                    Wei::zero(),
+                )
+                .await?;
+            aurora_engine::unwrap_success(result.status)?;
+            Ok(())
+        }
+
+        async fn approve_wnear(&self, account: &Account) -> anyhow::Result<()> {
+            let result = self
+                .engine
+                .verbose_call_evm_contract_with(
+                    account,
+                    self.inner.address,
+                    ContractInput(
+                        self.inner
+                            .abi
+                            .function("approveWNEAR")
+                            .unwrap()
+                            .encode_input(&[])
                             .unwrap(),
                     ),
                     Wei::zero(),

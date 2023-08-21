@@ -9,11 +9,13 @@ import "openzeppelin-contracts/utils/Strings.sol";
 import "./IEvmErc20.sol";
 import {AuroraSdk, Codec, NEAR, PromiseCreateArgs, PromiseResult, PromiseResultStatus, PromiseWithCallback} from "aurora-sdk/AuroraSdk.sol";
 
-uint64 constant FT_TRANSFER_CALL_NEAR_GAS = 40_000_000_000_000;
+uint64 constant FT_TRANSFER_CALL_NEAR_GAS = 35_000_000_000_000;
 
-uint64 constant CALLBACK_NEAR_GAS = 40_000_000_000_000;
+uint64 constant CALLBACK_NEAR_GAS = 130_000_000_000_000;
 
-uint64 constant REFUND_NEAR_GAS = 20_000_000_000_000;
+uint64 constant REFUND_NEAR_GAS = 35_000_000_000_000;
+
+uint64 constant APPROVE_NEAR_GAS = 20_000_000_000_000;
 
 contract FtRefund is AccessControl {
     using AuroraSdk for NEAR;
@@ -36,6 +38,21 @@ contract FtRefund is AccessControl {
             CALLBACK_ROLE,
             AuroraSdk.nearRepresentitiveImplicitAddress(address(this))
         );
+    }
+
+    function approveWNEAR() public {
+        uint256 amount = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+        PromiseCreateArgs memory approveCall = near.auroraCall(
+            address(this.wNEAR()),
+            abi.encodeWithSelector(
+                0x095ea7b3, // approve method selector
+                address(this),
+                amount
+            ),
+            0,
+            APPROVE_NEAR_GAS
+        );
+        approveCall.transact();
     }
 
     function ftTransferCall(

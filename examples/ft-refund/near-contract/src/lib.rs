@@ -25,6 +25,4 @@ impl FungibleTokenReceiver for FtRefund {
 }
 
 #[inline]
-fn black_hole<T>(_t: T) {
-    ()
-}
+fn black_hole<T>(_t: T) {}

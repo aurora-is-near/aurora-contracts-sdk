@@ -310,7 +310,7 @@ mod tests {
         async fn approve_wnear(&self, account: &Account) -> anyhow::Result<()> {
             let result = self
                 .engine
-                .verbose_call_evm_contract_with(
+                .call_evm_contract_with(
                     account,
                     self.inner.address,
                     ContractInput(

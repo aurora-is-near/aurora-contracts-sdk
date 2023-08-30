@@ -65,6 +65,16 @@ contract FtRefund is AccessControl {
         approveCall.transact();
     }
 
+    // Given an ERC-20 token that was bridged to Aurora from Near,
+    // this function will call the `ft_transfer_call` function on the
+    // Near-native NEP-141 token that ERC-20 was bridged from.
+    // This would be an important piece of an XCC-based integration into
+    // a Near app such as ref.finance (allowing Aurora users to use the
+    // Near app without creating a Near account themselves).
+    // For the purpose of this example, the call includes a message to
+    // force a refund back to the user because the point of this example
+    // is to show how to refund the Aurora user in the case there is a failure
+    // on the Near side.
     function ftTransferCall(
         IEvmErc20 token,
         string memory tokenId,
@@ -109,6 +119,10 @@ contract FtRefund is AccessControl {
         callFtTransfer.then(callback).transact();
     }
 
+    // This function is the callback from `ftTransferCall` which refunds the user
+    // in the case that `ft_transfer_call` did not comsume all the tokens the user
+    // sent. This is accomplished by bridging the tokens returned to the XCC account
+    // on Near back to Aurora via another `ft_transfer_call`.
     function ftTransferCallCallback(
         address sender,
         string memory tokenIdOnNear,

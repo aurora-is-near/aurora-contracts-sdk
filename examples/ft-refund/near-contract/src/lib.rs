@@ -15,6 +15,14 @@ impl FungibleTokenReceiver for FtRefund {
         amount: U128,
         msg: String,
     ) -> PromiseOrValue<U128> {
+        // The `sender_id` parameter is intentionally not used in this implementation.
+        // Typically you would prefix the variable name with an underscore to suppress
+        // the compiler warning about an unused variable, but that does not work here
+        // because the variable names are used in the `near_bindgen` generated code
+        // to parse the JSON arguments passed to this function and we still want the
+        // field to be called `sender_id` there, not `_sender_id`.
+        // For this reason we have a no-op function that will take any argument to make
+        // it "used" from the perspective of the compiler.
         black_hole(sender_id);
         if &msg == "refund" {
             PromiseOrValue::Value(amount)

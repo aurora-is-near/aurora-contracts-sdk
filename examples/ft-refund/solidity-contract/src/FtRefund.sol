@@ -40,6 +40,16 @@ contract FtRefund is AccessControl {
         );
     }
 
+    // The purpose of this function is to get around a quirk of the XCC design.
+    // The `CALLBACK_ROLE` is logically the same as this contract because it is
+    // the implicit address of this contract's XCC account (and therefore all
+    // transactions from `CALLBACK_ROLE` actually originated from this contract).
+    // So this function is essentially just approving itself to spend its own tokens.
+    // The reason its needed is because the addresses are different on the level of
+    // the EVM even though they are logically the same entity as I have described above.
+    // To summarize, this function is needed because
+    // `nearRepresentitiveImplicitAddress(address(this)) != address(this)`, but we still
+    // want to spend wNEAR in Aurora callbacks.
     function approveWNEAR() public {
         uint256 amount = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
         PromiseCreateArgs memory approveCall = near.auroraCall(

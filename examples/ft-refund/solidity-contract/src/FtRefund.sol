@@ -124,7 +124,8 @@ contract FtRefund is AccessControl {
     // This function is the callback from `ftTransferCall` which refunds the user
     // in the case that `ft_transfer_call` did not comsume all the tokens the user
     // sent. This is accomplished by bridging the tokens returned to the XCC account
-    // on Near back to Aurora via another `ft_transfer_call`.
+    // on Near back to Aurora via another `ft_transfer_call`. In its implementation
+    // of `ft_transfer_on`, Aurora will then send the tokens back to the user.
     function ftTransferCallCallback(
         address sender,
         string memory tokenIdOnNear,

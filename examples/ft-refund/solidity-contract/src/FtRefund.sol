@@ -135,7 +135,7 @@ contract FtRefund is AccessControl {
             // if Promise failed we need to do whole refund
             refundAmount = amount;
         } else {
-            // else `ft_on_transfer` will return used amount of FT,
+            // else `ft_resolve_transfer` will return used amount of FT,
             // which we need to extract from original amount
             uint128 usedAmount = _stringToUint(string(promiseResult.output));
             refundAmount = amount - usedAmount;

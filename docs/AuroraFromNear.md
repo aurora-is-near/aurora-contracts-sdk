@@ -34,8 +34,7 @@ The [Aurora Engine](https://github.com/aurora-is-near/aurora-engine) is the smar
 It has two main methods for interacting with the EVM from Near contracts.
 The `deploy_code` function is used to deploy new EVM contracts.
 It takes as input the raw EVM bytecode that is used to deploy the contract.
-Note that if this bytecode is obtain from compiling a Solidity contract with a constructor that takes arguments then you will need to be sure those arguments are properly encoded as part of the bytecode sent to `deploy_code`.
-For example you can use a library like [ethabi](https://crates.io/crates/ethabi) to encode the deploy arguments correctly.
+Note that if this bytecode is obtained from compiling a Solidity contract with a constructor that takes arguments then you will need to be sure those arguments are properly encoded as part of the bytecode sent to `deploy_code`. The encoded arguments have to be appended to the contracts bytecode since the constructor is invoked during deployment. For example you can use a library like [ethabi](https://crates.io/crates/ethabi) to encode the deploy arguments correctly.
 
 ## Aurora interface for `call`
 
@@ -54,7 +53,7 @@ pub struct FunctionCallArgsV2 {
 }
 ```
 
-where `contract` is the address of the EVM contract you are calling, `value` is the amount of Wei (1 ETH = 10^18 Wei) the implicit address will spend on the call (encoded as a 256-bit big endian unsigned integer), and `input` is the data passed to the contract.
+where `contract` is the address of the EVM contract you are calling, `value` is the amount of Wei (1 ETH = 10^18 Wei) the implicit address will spend on the call (encoded as a 256-bit big endian unsigned integer), and `input` is the data passed to the contract. The attached `value` wil be deducted from the implicit EVM address corresponding to the Near account ID that invokes `call`.
 The input data will generally be encoded using the Solidity ABI, again a library like [ethabi](https://crates.io/crates/ethabi) can be helpful here.
 Note that the EVM will not charge any ETH for gas because the transaction is still running on Near (the EVM is just another Near smart contract) so the computational cost is covered by the NEAR spent to execute the call in the first place.
 

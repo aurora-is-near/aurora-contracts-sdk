@@ -75,6 +75,8 @@ contract FtRefund is AccessControl {
     // force a refund back to the user because the point of this example
     // is to show how to refund the Aurora user in the case there is a failure
     // on the Near side.
+    // It is assumed that the sender has approved this contract to spend the
+    // sender's tokens.
     function ftTransferCall(
         IEvmErc20 token,
         string memory tokenId,

@@ -7,7 +7,7 @@ There is another receiving Near contract `R`, which denies the sent FT in its `f
 The XCC contract now needs to bridge back the FT to the signing EVM wallet by calling `ft_transfer_call` on the token again, this time sending the tokens to Aurora.
 An overview is given in the following diagram[^1]:
 
-![Overview diagram](/assets/ft-refund-overview.svg)
+![Overview diagram](./assets/ft-refund-overview.svg)
 
 [^1]: The diagram can be added by opening its `svg` file in [excalidraw](https://excalidraw.com).
 

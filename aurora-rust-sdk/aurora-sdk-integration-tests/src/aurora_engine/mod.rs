@@ -26,13 +26,13 @@ pub struct AuroraEngine {
     pub inner: Contract,
 }
 
-pub async fn deploy_latest(worker: &Worker<Sandbox>) -> anyhow::Result<AuroraEngine> {
+pub async fn deploy_latest_silo(worker: &Worker<Sandbox>, account_id: &str) -> anyhow::Result<AuroraEngine> {
     let wasm = repo::AuroraEngineRepo::download_and_compile_latest().await?;
     let (_, sk) = worker.dev_generate().await;
     // We can't use `dev-deploy` here because then the account ID is too long to create
     // `{address}.{engine}` sub-accounts.
     let contract = worker
-        .create_tla_and_deploy(AURORA_ACCOUNT_ID.parse().unwrap(), sk, &wasm)
+        .create_tla_and_deploy(account_id.parse().unwrap(), sk, &wasm)
         .await?
         .into_result()?;
     let new_args = NewCallArgs::V2(NewCallArgsV2 {
@@ -77,6 +77,10 @@ pub async fn deploy_latest(worker: &Worker<Sandbox>) -> anyhow::Result<AuroraEng
         .into_result()?;
 
     Ok(AuroraEngine { inner: contract })
+}
+
+pub async fn deploy_latest(worker: &Worker<Sandbox>) -> anyhow::Result<AuroraEngine> {
+    deploy_latest_silo(worker, AURORA_ACCOUNT_ID).await
 }
 
 impl AuroraEngine {

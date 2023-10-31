@@ -60,13 +60,13 @@ pub async fn forge_build_with_args<P: AsRef<Path>>(
     root_path: P,
     libraries: &[String],
     contract_output_path: &[&str],
-    extra_args: &[String],
+    extra_args: &[&str],
 ) -> anyhow::Result<ContractConstructor> {
     let _guard = FORGE_LOCK.lock().await;
     let contracts_path = root_path.as_ref();
     let args = std::iter::once("build")
         .chain(libraries.iter().flat_map(|x| ["--libraries", x]))
-        .chain(extra_args.iter().map(|s| s.as_ref()));
+        .chain(extra_args.iter().copied());
 
     let output = Command::new("forge")
         .current_dir(contracts_path)

@@ -14,6 +14,10 @@ mod tests {
     };
     use std::path::Path;
 
+    const MINT_AMOUNT: u128 = 111;
+    // Must match the `FEE` in `near-contract/lib.rs`
+    const FEE: u128 = 77;
+
     #[tokio::test]
     async fn test_contract() {
         let worker = workspaces::sandbox().await.unwrap();
@@ -156,7 +160,7 @@ mod tests {
         // Mint test tokens
         test_token_contract
             .call("mint")
-            .args_json((account.id(), "1"))
+            .args_json((account.id(), MINT_AMOUNT.to_string()))
             .transact()
             .await
             .unwrap()
@@ -167,7 +171,8 @@ mod tests {
             .call_evm_contract_with(
                 &account,
                 test_erc20.address,
-                test_erc20.create_approve_call_bytes(solidity_contract.inner.address, "1".into()),
+                test_erc20
+                    .create_approve_call_bytes(solidity_contract.inner.address, MINT_AMOUNT.into()),
                 Wei::zero(),
             )
             .await
@@ -176,7 +181,12 @@ mod tests {
         // Bridge test token
         account
             .call(test_token_contract.id(), "ft_transfer_call")
-            .args_json((engine.inner.id(), "1", "null", address.encode()))
+            .args_json((
+                engine.inner.id(),
+                MINT_AMOUNT.to_string(),
+                "null",
+                address.encode(),
+            ))
             .max_gas()
             .deposit(1)
             .transact()
@@ -187,7 +197,7 @@ mod tests {
 
         // assert ERC20 amount after bridging
         let erc20_balance = engine.erc20_balance_of(&test_erc20, address).await.unwrap();
-        assert_eq!(erc20_balance, "1".into());
+        assert_eq!(erc20_balance, MINT_AMOUNT.into());
 
         // Approve the proxy contract to spend the WNEAR of the xcc implicit address
         solidity_contract.approve_wnear(&account).await.unwrap();
@@ -223,14 +233,14 @@ mod tests {
                 &account,
                 &test_erc20.address,
                 test_token_contract.id().to_string(),
-                1,
+                MINT_AMOUNT,
             )
             .await
             .unwrap();
 
         // assert ERC20 amount after calling solidity contract
         let erc20_balance = engine.erc20_balance_of(&test_erc20, address).await.unwrap();
-        assert_eq!(erc20_balance, "1".into());
+        assert_eq!(erc20_balance, (MINT_AMOUNT - FEE).into());
     }
 
     async fn deploy_solidity_contract<'a>(

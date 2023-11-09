@@ -3,6 +3,9 @@ use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::json_types::U128;
 use near_sdk::{near_bindgen, AccountId, PromiseOrValue};
 
+// A fee that is taken from amounts that are requested to be refunded.
+const FEE: u128 = 77;
+
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, Default)]
 pub struct FtRefund;
@@ -25,7 +28,8 @@ impl FungibleTokenReceiver for FtRefund {
         // it "used" from the perspective of the compiler.
         black_hole(sender_id);
         if &msg == "refund" {
-            PromiseOrValue::Value(amount)
+            let return_amount = amount.0.saturating_sub(FEE);
+            PromiseOrValue::Value(U128(return_amount))
         } else {
             PromiseOrValue::Value(0.into())
         }

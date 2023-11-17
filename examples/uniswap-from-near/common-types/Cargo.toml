@@ -1,5 +1,5 @@
 [package]
-name = "uniswap-from-near"
+name = "uniswap-from-near-types"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,6 +7,5 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-aurora-sdk = { path = "../../../aurora-rust-sdk/aurora-sdk" }
+near-sdk = { version = "4.1", features = ["abi"] }
 serde = { version = "1", features = ["derive"] }
-uniswap-from-near-types = { path = "../common-types" }

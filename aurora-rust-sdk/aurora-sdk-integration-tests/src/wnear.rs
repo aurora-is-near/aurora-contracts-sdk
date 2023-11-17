@@ -2,7 +2,7 @@ use crate::{
     aurora_engine::{erc20::ERC20, AuroraEngine},
     nep141::{self, AccountIdArgs},
 };
-use workspaces::{network::Sandbox, Contract, Worker};
+use workspaces::{network::Sandbox, types::NearToken, Contract, Worker};
 
 const STORAGE_DEPOSIT_AMOUNT: u128 = 1_000_000_000_000_000_000_000_000;
 
@@ -53,7 +53,7 @@ impl Wnear {
             .args_json(AccountIdArgs {
                 account_id: account.id(),
             })
-            .deposit(STORAGE_DEPOSIT_AMOUNT)
+            .deposit(NearToken::from_yoctonear(STORAGE_DEPOSIT_AMOUNT))
             .transact()
             .await?
             .into_result()?;
@@ -67,7 +67,7 @@ impl Wnear {
     ) -> anyhow::Result<()> {
         account
             .call(self.inner.id(), "near_deposit")
-            .deposit(amount)
+            .deposit(NearToken::from_yoctonear(amount))
             .transact()
             .await?
             .into_result()?;

@@ -7,4 +7,4 @@ edition = "2021"
 aurora-sdk-integration-tests = { path = "../../../aurora-rust-sdk/aurora-sdk-integration-tests" }
 near-abi-client = "0.1.0"
 serde = "1"
-uniswap-from-near = { path = "../contract" }
+uniswap-from-near-types = { path = "../common-types" }

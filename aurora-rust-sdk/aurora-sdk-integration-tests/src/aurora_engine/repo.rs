@@ -5,7 +5,7 @@ use std::{
 };
 use tokio::sync::Mutex;
 
-pub const LATEST_ENGINE_VERSION: &str = "2.9.1";
+pub const LATEST_ENGINE_VERSION: &str = "9a0058c8fd3b60fb68758e9edd6a42a7f43a0165";
 const TARGET: &str = "target";
 const ENGINE_PATH: &str = "aurora-engine";
 /// A lock to prevent multiple tests from modifying the aurora-engine repo at the same time.
@@ -248,8 +248,5 @@ impl TryFrom<ActionOutput> for () {
 #[test]
 fn test_find_target_dir() {
     let result = find_target_dir().unwrap();
-    assert_eq!(
-        result,
-        Path::new("../").canonicalize().unwrap().join(TARGET)
-    );
+    assert_eq!(result, Path::new(".").canonicalize().unwrap().join(TARGET));
 }

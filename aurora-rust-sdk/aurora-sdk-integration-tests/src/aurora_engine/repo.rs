@@ -5,7 +5,7 @@ use std::{
 };
 use tokio::sync::Mutex;
 
-pub const LATEST_ENGINE_VERSION: &str = "9a0058c8fd3b60fb68758e9edd6a42a7f43a0165";
+pub const LATEST_ENGINE_VERSION: &str = "896005e1bb0e3e8cedb6a29e8988d1e556119d99";
 const TARGET: &str = "target";
 const ENGINE_PATH: &str = "aurora-engine";
 /// A lock to prevent multiple tests from modifying the aurora-engine repo at the same time.

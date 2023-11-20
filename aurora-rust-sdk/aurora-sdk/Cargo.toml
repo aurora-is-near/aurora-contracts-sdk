@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-aurora-engine-types = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "9a0058c8fd3b60fb68758e9edd6a42a7f43a0165", default-features = false, features = ["contracts-std", "impl-serde", "borsh-compat"] }
-aurora-engine-sdk = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "9a0058c8fd3b60fb68758e9edd6a42a7f43a0165", default-features = false, features = ["contract", "borsh-compat"] }
+aurora-engine-types = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "896005e1bb0e3e8cedb6a29e8988d1e556119d99", default-features = false, features = ["contracts-std", "impl-serde", "borsh-compat"] }
+aurora-engine-sdk = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "896005e1bb0e3e8cedb6a29e8988d1e556119d99", default-features = false, features = ["contract", "borsh-compat"] }
 ethabi = { version = "18", default-features = false }
 hex = "0.4"
 near-sdk = { version = "4.1", features = ["abi"] }

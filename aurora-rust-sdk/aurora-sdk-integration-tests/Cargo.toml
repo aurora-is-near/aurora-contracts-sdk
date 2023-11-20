@@ -6,11 +6,11 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
-aurora-engine = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "9a0058c8fd3b60fb68758e9edd6a42a7f43a0165", default-features = false, features = ["std"] }
-aurora-engine-precompiles = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "9a0058c8fd3b60fb68758e9edd6a42a7f43a0165", default-features = false, features = ["std"] }
-aurora-engine-sdk = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "9a0058c8fd3b60fb68758e9edd6a42a7f43a0165", default-features = false, features = ["std"] }
-aurora-engine-transactions = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "9a0058c8fd3b60fb68758e9edd6a42a7f43a0165" }
-aurora-engine-types = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "9a0058c8fd3b60fb68758e9edd6a42a7f43a0165", default-features = false, features = ["std"] }
+aurora-engine = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "896005e1bb0e3e8cedb6a29e8988d1e556119d99", default-features = false, features = ["std"] }
+aurora-engine-precompiles = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "896005e1bb0e3e8cedb6a29e8988d1e556119d99", default-features = false, features = ["std"] }
+aurora-engine-sdk = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "896005e1bb0e3e8cedb6a29e8988d1e556119d99", default-features = false, features = ["std"] }
+aurora-engine-transactions = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "896005e1bb0e3e8cedb6a29e8988d1e556119d99" }
+aurora-engine-types = { git = "https://github.com/aurora-is-near/aurora-engine.git", rev = "896005e1bb0e3e8cedb6a29e8988d1e556119d99", default-features = false, features = ["std"] }
 base64 = "0.21"
 ethabi = "18"
 hex = "0.4"

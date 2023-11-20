@@ -1,6 +1,0 @@
-[workspace]
-members = [
-  "aurora-sdk",
-  "aurora-sdk-integration-tests",
-]
-exclude = ["target"]

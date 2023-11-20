@@ -1,9 +1,9 @@
 use crate::wnear::Wnear;
-use aurora_engine::parameters::{
-    CallArgs, DeployErc20TokenArgs, FunctionCallArgsV2, NewCallArgs, NewCallArgsV2, SubmitResult,
-    TransactionStatus, ViewCallArgs,
-};
 use aurora_engine_types::{
+    parameters::engine::{
+        CallArgs, DeployErc20TokenArgs, FunctionCallArgsV2, NewCallArgs, NewCallArgsV2,
+        SubmitResult, TransactionStatus, ViewCallArgs,
+    },
     types::{Address, Wei},
     U256,
 };
@@ -26,7 +26,10 @@ pub struct AuroraEngine {
     pub inner: Contract,
 }
 
-pub async fn deploy_latest_silo(worker: &Worker<Sandbox>, account_id: &str) -> anyhow::Result<AuroraEngine> {
+pub async fn deploy_latest_silo(
+    worker: &Worker<Sandbox>,
+    account_id: &str,
+) -> anyhow::Result<AuroraEngine> {
     let wasm = repo::AuroraEngineRepo::download_and_compile_latest().await?;
     let (_, sk) = worker.dev_generate().await;
     // We can't use `dev-deploy` here because then the account ID is too long to create

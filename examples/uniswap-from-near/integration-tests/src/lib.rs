@@ -92,7 +92,7 @@ mod tests {
             aurora_engine_types::{types::Address, U256},
             workspaces::{self, Contract},
         };
-        use uniswap_from_near::SerializableExactOutputSingleParams;
+        use uniswap_from_near_types::SerializableExactOutputSingleParams;
 
         pub struct UniswapProxy {
             /// The `workspaces::Contract` instance here must have the UniswapProxy example

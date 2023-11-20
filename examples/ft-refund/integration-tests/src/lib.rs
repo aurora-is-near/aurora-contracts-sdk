@@ -10,10 +10,11 @@ mod tests {
         ethabi, tokio,
         utils::{self, ethabi::DeployedContract, forge},
         wnear,
-        workspaces::{self, Account, AccountId},
+        workspaces::{self, types::NearToken, Account, AccountId},
     };
     use std::path::Path;
 
+    const STORAGE_DEPOSIT: NearToken = NearToken::from_yoctonear(10_000_000_000_000_000_000_000);
     const MINT_AMOUNT: u128 = 111;
     // Must match the `FEE` in `near-contract/lib.rs`
     const FEE: u128 = 77;
@@ -121,7 +122,7 @@ mod tests {
         test_token_contract
             .call("storage_deposit")
             .args_json((engine.inner.id(), true))
-            .deposit(10_000_000_000_000_000_000_000)
+            .deposit(STORAGE_DEPOSIT)
             .transact()
             .await
             .unwrap()
@@ -131,7 +132,7 @@ mod tests {
         test_token_contract
             .call("storage_deposit")
             .args_json((near_contract.id(), true))
-            .deposit(10_000_000_000_000_000_000_000)
+            .deposit(STORAGE_DEPOSIT)
             .transact()
             .await
             .unwrap()
@@ -141,7 +142,7 @@ mod tests {
         test_token_contract
             .call("storage_deposit")
             .args_json((&xcc_account, true))
-            .deposit(10_000_000_000_000_000_000_000)
+            .deposit(STORAGE_DEPOSIT)
             .transact()
             .await
             .unwrap()
@@ -151,7 +152,7 @@ mod tests {
         test_token_contract
             .call("storage_deposit")
             .args_json((account.id(), true))
-            .deposit(10_000_000_000_000_000_000_000)
+            .deposit(STORAGE_DEPOSIT)
             .transact()
             .await
             .unwrap()
@@ -188,7 +189,7 @@ mod tests {
                 address.encode(),
             ))
             .max_gas()
-            .deposit(1)
+            .deposit(NearToken::from_yoctonear(1))
             .transact()
             .await
             .unwrap()

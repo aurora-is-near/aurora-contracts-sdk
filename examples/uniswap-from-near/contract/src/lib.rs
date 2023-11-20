@@ -2,8 +2,8 @@ use aurora_sdk::{
     ethabi, near_sdk, Address, CallArgs, FunctionCallArgsV1, SubmitResult, TransactionStatus, U256,
 };
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::json_types::U64;
 use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault, Promise};
+use uniswap_from_near_types::SerializableExactOutputSingleParams;
 
 const DEFAULT_FEE: u64 = 500;
 /// Selector for [exactOutputSingle](https://docs.uniswap.org/contracts/v3/reference/periphery/SwapRouter#exactoutputsingle).
@@ -140,24 +140,6 @@ impl TryFrom<SerializableExactOutputSingleParams> for ExactOutputSingleParams {
             price_limit,
         })
     }
-}
-
-/// Same as `ExactOutputSingleParams` above, but with the types optimized for input/output
-/// as JSON instead of for usage in the EVM.
-#[derive(serde::Serialize, serde::Deserialize)]
-pub struct SerializableExactOutputSingleParams {
-    pub token_in: String,
-    pub token_out: String,
-    #[serde(default)]
-    pub fee: Option<U64>,
-    pub recipient: String,
-    #[serde(default)]
-    pub deadline: Option<String>,
-    pub amount_out: String,
-    #[serde(default)]
-    pub amount_in_max: Option<String>,
-    #[serde(default)]
-    pub price_limit: Option<String>,
 }
 
 #[derive(Debug)]
